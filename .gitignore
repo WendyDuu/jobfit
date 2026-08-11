@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+
+# Next.js build output
+.next/
+out/
+
+# Production builds and test output
+build/
+dist/
+coverage/
+playwright-report/
+test-results/
+
+# Local environment and secrets (example files may be committed)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Private user files and local uploads
+uploads/
+private/
+user-data/
+resumes/
+*.resume.pdf
+*.resume.docx
+resume*.pdf
+resume*.docx
+简历*.pdf
+简历*.docx
+
+# Logs and local tooling
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.tsbuildinfo
