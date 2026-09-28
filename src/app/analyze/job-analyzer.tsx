@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import type { JobAnalysis } from "@/lib/job-analysis";
 
 const exampleJd = `产品实习生
 
@@ -16,30 +17,6 @@ const exampleJd = `产品实习生
 3. 熟悉 Axure、Figma 等原型工具，有 SQL 或数据分析经验者优先；
 4. 有校园项目、产品设计比赛或相关实习经验者优先。`;
 
-const mockResult = {
-  skills: ["用户洞察", "逻辑分析", "产品思维", "跨团队协作"],
-  keywords: [
-    "用户调研",
-    "需求分析",
-    "原型设计",
-    "数据分析",
-    "功能迭代",
-    "SQL",
-    "Figma",
-  ],
-  duties: [
-    "开展用户调研，整理并分析用户反馈",
-    "参与需求分析、原型设计与产品功能迭代",
-    "协同设计和研发团队，推动项目按计划交付",
-    "关注核心业务数据并形成分析结论",
-  ],
-  bonuses: [
-    "有 SQL 或数据分析经验",
-    "熟悉 Axure、Figma 等原型工具",
-    "有校园项目、产品比赛或相关实习经历",
-  ],
-};
-
 function SparkIcon() {
   return (
     <svg viewBox="0 0 20 20" aria-hidden="true">
@@ -50,17 +27,41 @@ function SparkIcon() {
 
 export function JobAnalyzer() {
   const [jd, setJd] = useState("");
-  const [showResult, setShowResult] = useState(false);
+  const [result, setResult] = useState<JobAnalysis | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const analyze = () => {
+  const analyze = async () => {
     if (!jd.trim()) return;
     setIsAnalyzing(true);
-    setShowResult(false);
-    window.setTimeout(() => {
+    setResult(null);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ jd }),
+      });
+      const data = (await response.json()) as {
+        analysis?: JobAnalysis;
+        error?: string;
+      };
+
+      if (!response.ok || !data.analysis) {
+        throw new Error(data.error || "分析失败，请稍后重试。");
+      }
+
+      setResult(data.analysis);
+    } catch (requestError) {
+      setError(
+        requestError instanceof Error
+          ? requestError.message
+          : "分析失败，请稍后重试。",
+      );
+    } finally {
       setIsAnalyzing(false);
-      setShowResult(true);
-    }, 650);
+    }
   };
 
   return (
@@ -76,9 +77,11 @@ export function JobAnalyzer() {
         <div className="textarea-wrap">
           <textarea
             value={jd}
+            maxLength={12_000}
             onChange={(event) => {
               setJd(event.target.value);
-              setShowResult(false);
+              setResult(null);
+              setError(null);
             }}
             placeholder="在这里粘贴完整的岗位描述（JD）…"
             aria-describedby="jd-help"
@@ -93,7 +96,8 @@ export function JobAnalyzer() {
             type="button"
             onClick={() => {
               setJd(exampleJd);
-              setShowResult(false);
+              setResult(null);
+              setError(null);
             }}
           >
             使用示例 JD
@@ -108,11 +112,16 @@ export function JobAnalyzer() {
           </button>
         </div>
         <p className="helper-text" id="jd-help">
-          当前阶段使用演示数据，不会上传文件或调用真实 AI 服务。
+          岗位描述会发送给 AI 服务进行本次分析，请勿粘贴敏感个人信息。
         </p>
+        {error && (
+          <p className="analysis-error" role="alert">
+            {error}
+          </p>
+        )}
       </section>
 
-      {showResult ? (
+      {result ? (
         <section className="results-section" aria-live="polite">
           <div className="results-title">
             <div>
@@ -122,17 +131,17 @@ export function JobAnalyzer() {
                 <h2>岗位分析结果</h2>
               </div>
             </div>
-            <span className="mock-label">演示结果</span>
+            <span className="mock-label">AI 分析</span>
           </div>
           <div className="result-grid">
             <article className="analysis-card skills-card">
               <div className="analysis-card-heading">
                 <span>✦</span>
                 <h3>核心能力</h3>
-                <i>{mockResult.skills.length}</i>
+                <i>{result.skills.length}</i>
               </div>
               <div className="skill-list">
-                {mockResult.skills.map((item, index) => (
+                {result.skills.map((item, index) => (
                   <div key={item}>
                     <span>{String(index + 1).padStart(2, "0")}</span>
                     <strong>{item}</strong>
@@ -144,10 +153,10 @@ export function JobAnalyzer() {
               <div className="analysis-card-heading">
                 <span>#</span>
                 <h3>关键词</h3>
-                <i>{mockResult.keywords.length}</i>
+                <i>{result.keywords.length}</i>
               </div>
               <div className="keyword-list">
-                {mockResult.keywords.map((item) => (
+                {result.keywords.map((item) => (
                   <span key={item}>{item}</span>
                 ))}
               </div>
@@ -156,10 +165,10 @@ export function JobAnalyzer() {
               <div className="analysis-card-heading">
                 <span>≡</span>
                 <h3>岗位职责</h3>
-                <i>{mockResult.duties.length}</i>
+                <i>{result.duties.length}</i>
               </div>
               <ul>
-                {mockResult.duties.map((item) => (
+                {result.duties.map((item) => (
                   <li key={item}>
                     <span>✓</span>
                     {item}
@@ -171,10 +180,10 @@ export function JobAnalyzer() {
               <div className="analysis-card-heading">
                 <span>＋</span>
                 <h3>加分项</h3>
-                <i>{mockResult.bonuses.length}</i>
+                <i>{result.bonuses.length}</i>
               </div>
               <ul>
-                {mockResult.bonuses.map((item) => (
+                {result.bonuses.map((item) => (
                   <li key={item}>
                     <span>↑</span>
                     {item}
