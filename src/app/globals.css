@@ -733,6 +733,15 @@ a {
   color: #98a29f;
   font-size: 9px;
 }
+.analysis-error {
+  margin: 14px 0 0;
+  padding: 11px 14px;
+  color: #9a332b;
+  background: #fff0ed;
+  border: 1px solid #f2c7c1;
+  border-radius: 8px;
+  font-size: 13px;
+}
 .empty-result {
   min-height: 210px;
   display: flex;

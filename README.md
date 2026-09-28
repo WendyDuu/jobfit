@@ -2,16 +2,16 @@
 
 JobFit 是一个面向学生与初入职场求职者的 AI 简历定制 Web 应用。它帮助用户理解岗位要求，并基于用户**已经提供且可追溯的真实经历**，生成更匹配目标岗位的简历；它不是代写虚假经历的工具。
 
-> 当前阶段：MVP 阶段一。已经搭建可运行的前端骨架；本文同时保留后续产品与技术规划。
+> 当前阶段：已接入真实岗位 JD 分析；本文同时保留后续产品与技术规划。
 
-## 当前实现（阶段一）
+## 当前实现
 
 仓库目前包含一个可以本地运行的 Next.js Web 应用骨架：
 
 - 简洁、响应式的 JobFit 首页，介绍产品价值、五步流程和真实性原则；
 - `/analyze` 岗位分析页，支持粘贴 JD 或填入示例 JD；
-- 点击“分析岗位”后展示核心能力、关键词、岗位职责和加分项的 mock 分析结果；
-- 当前不会上传文件、连接数据库或调用真实 AI API。
+- 点击“分析岗位”后通过服务端 Route Handler 调用 OpenAI，展示核心能力、关键词、岗位职责和加分项；
+- 当前不会上传文件、连接数据库、实现登录或生成 PDF。
 
 ### 本地启动
 
@@ -19,8 +19,12 @@ JobFit 是一个面向学生与初入职场求职者的 AI 简历定制 Web 应�
 
 ```bash
 npm install
+cp .env.example .env.local
 npm run dev
 ```
+
+在 `.env.local` 中填写你自己的 `OPENAI_API_KEY`。密钥只由服务端读取，不要使用
+`NEXT_PUBLIC_` 前缀，也不要提交 `.env.local`。可选的 `OPENAI_MODEL` 用于覆盖默认模型。
 
 打开 [http://localhost:3000](http://localhost:3000)，或访问 [http://localhost:3000/analyze](http://localhost:3000/analyze) 直接体验岗位分析。
 
